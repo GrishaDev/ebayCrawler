@@ -1,23 +1,23 @@
-
-const axios = require('axios');
-const fs = require('fs');
 const cheerio = require('cheerio');
+const axios = require('axios');
 
 const SERP_URL = 'https://www.ebay.com/sch/i.html?_nkw=';
 const searchTerm = 'smart+phones';
 
-(async() => {
-    const res = await axios.get(SERP_URL+searchTerm);
-    // console.log(res.data);
-    const $ = cheerio.load(res.data);
-    // console.log($('.srp-related-searches').toArray()[0]);
+let $;
 
-    let related = $('.srp-related-searches').children().last().children().map((i, card) => {
-        return $(card).first().text()
+const loadPage = () => {
+    const res = await axios.get(SERP_URL + searchTerm);
+    $ = cheerio.load(res.data);
+}
+
+const getRelatedSearches = () => {
+    return $('.srp-related-searches').children().last().children().map((i, related) => {
+        return $(related).first().text()
     }).get();
+}
 
-    
-    // srp-results srp-list clearfix"
+const getProducts = () => {
     const products = $('.srp-results.clearfix').find('.s-item').map((i, product) => {
 
         const imageUrl = $(product).find('.s-item__image-img').attr('src')
@@ -28,7 +28,7 @@ const searchTerm = 'smart+phones';
         // const sponsored = $(product).find('.s-item__sep').find('s-czibw4');
         // const isSponsored = sponsored.length > 0 ? true : false;
         const shippingCountry = shipsFrom.replace('from ', '');
-        
+
         return {
             id: '234234234',
             position: i,
@@ -40,7 +40,8 @@ const searchTerm = 'smart+phones';
             imageUrl
         }
     }).get();
+}
 
-    fs.writeFileSync('products.json', JSON.stringify(products));
-    console.log(related);
-})();
+
+const findAndGetText = (domElement, className) => $(domElement).find(className).text();
+const findAndGetAttribute = (domElement, attribute) => $(domElement).find(className).attr(attribute);
