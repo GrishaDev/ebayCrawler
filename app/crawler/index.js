@@ -1,47 +1,60 @@
 const cheerio = require('cheerio');
 const axios = require('axios');
+const config = require('../config');
 
-const SERP_URL = 'https://www.ebay.com/sch/i.html?_nkw=';
-const searchTerm = 'smart+phones';
+const { elements } = config;
 
 let $;
 
-const loadPage = () => {
-    const res = await axios.get(SERP_URL + searchTerm);
+const loadCrawler = async () => {
+    const res = await axios.get(config.crawlUrl + config.searchTerm, {headers: config.specialHeaders}).catch(err => { throw Error('Failed requesting page') });
     $ = cheerio.load(res.data);
+    console.log('crawler loaded succesfuly');
 }
 
 const getRelatedSearches = () => {
-    return $('.srp-related-searches').children().last().children().map((i, related) => {
+    return $(elements.relatedSearches).children().last().children().map((i, related) => {
         return $(related).first().text()
     }).get();
 }
 
 const getProducts = () => {
-    const products = $('.srp-results.clearfix').find('.s-item').map((i, product) => {
-
-        const imageUrl = $(product).find('.s-item__image-img').attr('src')
-        const title = $(product).first().last().find('a').text();
-        const price = $(product).find('.s-item__price').text();
-        const shipping = $(product).find('.s-item__shipping').text();
-        const shipsFrom = $(product).find('.s-item__location').text();
-        // const sponsored = $(product).find('.s-item__sep').find('s-czibw4');
-        // const isSponsored = sponsored.length > 0 ? true : false;
+    return $(elements.productResults).find(elements.productItem).map((i, product) => {
+        const parsedProduct = $(product);
+        const imageUrl = findAndGetAttribute(parsedProduct, elements.productImage, 'src');
+        const title = findAndGetText(parsedProduct, elements.productTitle);
+        const price = findAndGetText(parsedProduct, elements.productPrice);
+        const url = $(product).find('a').attr('href');
+        const id = getIdFromUrl(url);
+        const shippingPrice = findAndGetText(parsedProduct, elements.productShipping);
+        const shipsFrom = findAndGetText(parsedProduct, elements.productLocation);
+        const symbolsArr = getSymbols(parsedProduct, elements.productSymbols);
+        const sponsored = isSponsored(symbolsArr);
         const shippingCountry = shipsFrom.replace('from ', '');
-
         return {
-            id: '234234234',
+            id,
             position: i,
             title,
             price,
-            shipping,
+            shippingPrice,
             shippingCountry,
-            // isSponsored,
+            sponsored,
             imageUrl
         }
     }).get();
 }
 
+const getIdFromUrl = url => {
+    return url.substring(
+        url.lastIndexOf("/") + 1,
+        url.lastIndexOf("?")
+    );
+}
+
+const getSymbols = (domElement, className) => domElement.find(className).first().find('span').children().toArray();
+const isSponsored = symbolsArr => !(symbolsArr.every(symbol => $(symbol).attr('class') === $(symbolsArr[0]).attr('class')));
 
 const findAndGetText = (domElement, className) => $(domElement).find(className).text();
-const findAndGetAttribute = (domElement, attribute) => $(domElement).find(className).attr(attribute);
+const findAndGetAttribute = (domElement, className, attribute) => $(domElement).find(className).attr(attribute);
+
+module.exports = {loadCrawler, getRelatedSearches, getProducts}
