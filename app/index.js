@@ -25,6 +25,9 @@ const searchTerm = 'smart+phones';
         const shipsFrom = $(product).find('.s-item__location').text();
         const sponsored = $(product).find('.s-item__sep').first().text();
         console.log(sponsored);
+
+        // $(product).find('.s-item__sep').first().find('span').map((i, thing) => console.log($(thing).attr('class')) ).get();
+        
         // const isSponsored = sponsored.length > 0 ? true : false;
         const shippingCountry = shipsFrom.replace('from ', '');
         
