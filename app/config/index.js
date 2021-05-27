@@ -1,6 +1,6 @@
 module.exports = {
     crawlUrl: 'https://www.ebay.com/sch/i.html?_nkw=',
-    searchTerm: 'shirts',
+    searchTerm: 'running shoes',
     elements: {
         relatedSearches: '.srp-related-searches',
         productResults: '.srp-results.clearfix',

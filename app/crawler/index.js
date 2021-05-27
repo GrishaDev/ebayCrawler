@@ -7,19 +7,21 @@ const { elements } = config;
 let $;
 
 const loadCrawler = async () => {
-    const res = await axios.get(config.crawlUrl + config.searchTerm, {headers: config.specialHeaders}).catch(err => { throw Error('Failed requesting page') });
+    const res = await axios.get(config.crawlUrl + config.searchTerm, {headers: config.specialHeaders})
+    .catch(err => { throw Error('Failed requesting page') });
+
     $ = cheerio.load(res.data);
     console.log('crawler loaded succesfuly');
 }
 
 const getRelatedSearches = () => {
-    return $(elements.relatedSearches).children().last().children().map((i, related) => {
+    return $(elements.relatedSearches).children().last().children().map((_, related) => {
         return $(related).first().text()
     }).get();
 }
 
 const getProducts = () => {
-    return $(elements.productResults).find(elements.productItem).map((i, product) => {
+    return $(elements.productResults).find(elements.productItem).map((index, product) => {
         const parsedProduct = $(product);
         const imageUrl = findAndGetAttribute(parsedProduct, elements.productImage, 'src');
         const title = findAndGetText(parsedProduct, elements.productTitle);
@@ -33,7 +35,7 @@ const getProducts = () => {
         const shippingCountry = shipsFrom.replace('from ', '');
         return {
             id,
-            position: i,
+            position: index,
             title,
             price,
             shippingPrice,
