@@ -7,7 +7,7 @@ const { elements } = config;
 let $;
 
 const loadCrawler = async () => {
-    const res = await axios.get(config.crawlUrl + config.searchTerm, {headers: config.specialHeaders})
+    const res = await axios.get(config.crawlUrl + config.searchTerm, { headers: config.specialHeaders })
     .catch(err => { throw Error('Failed requesting page') });
 
     $ = cheerio.load(res.data);
@@ -15,7 +15,7 @@ const loadCrawler = async () => {
 }
 
 const getRelatedSearches = () => {
-    return $(elements.relatedSearches).children().last().children().map((_, related) => {
+    return $(elements.relatedSearches).children().last().children().map((index, related) => {
         return $(related).first().text()
     }).get();
 }
